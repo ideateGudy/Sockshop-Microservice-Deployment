@@ -1,38 +1,15 @@
-
 output "resource_group_name" {
-  value = azurerm_resource_group.rg.name
+  description = "The name of the resource group"
+  value       = module.resource_group_module.name
 }
 
 output "kubernetes_cluster_name" {
-  value = azurerm_kubernetes_cluster.aks.name
+  value = module.aks_module.cluster_name
 }
+
 
 resource "local_file" "kubeconfig" {
-  depends_on   = [azurerm_kubernetes_cluster.aks]
-  filename     = "kubeconfig"
-  content      = azurerm_kubernetes_cluster.aks.kube_config_raw
+  depends_on = [module.aks_module]
+  filename   = "${path.module}/tmp/kubeconfig"
+  content    = module.aks_module.kube_config
 }
-
-# output "host" {
-#   value = azurerm_kubernetes_cluster.default.kube_config.0.host
-# }
-
-# output "client_key" {
-#   value = azurerm_kubernetes_cluster.default.kube_config.0.client_key
-# }
-
-# output "client_certificate" {
-#   value = azurerm_kubernetes_cluster.default.kube_config.0.client_certificate
-# }
-
-# output "kube_config" {
-#   value = azurerm_kubernetes_cluster.default.kube_config_raw
-# }
-
-# output "cluster_username" {
-#   value = azurerm_kubernetes_cluster.default.kube_config.0.username
-# }
-
-# output "cluster_password" {
-#   value = azurerm_kubernetes_cluster.default.kube_config.0.password
-# }

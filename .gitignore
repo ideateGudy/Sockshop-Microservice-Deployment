@@ -9,3 +9,7 @@
 
 # Ignore any .tfvars files 
 *.tfvars
+
+#ignore kubeconfig file
+tmp
+kubeconfig
