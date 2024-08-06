@@ -2,6 +2,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: sockshop-app-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
   namespace: sock-shop
 spec:
   ingressClassName: nginx
@@ -9,16 +11,15 @@ spec:
     - host: sock.ideategudy.me
       http:
         paths:
-          - pathType: Prefix
-            path: /
+          - path: /
+            pathType: Prefix
             backend:
               service:
                 name: front-end
                 port:
                   number: 80
-
-  # This section is only required if TLS is to be enabled for the Ingress
-  # tls:
-  #   - hosts:
-  #       - www.ideategudy.com
-  #     secretName: example-tls
+# This section is only required if TLS is to be enabled for the Ingress
+# tls:
+#   - hosts:
+#       - www.ideategudy.com
+#     secretName: example-tls
