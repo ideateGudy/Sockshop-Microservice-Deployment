@@ -13,3 +13,6 @@
 #ignore kubeconfig file
 tmp
 kubeconfig
+
+
+debug.txt
