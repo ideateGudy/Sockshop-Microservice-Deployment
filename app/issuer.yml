@@ -3,6 +3,7 @@ apiVersion: cert-manager.io/v1 # test: cert-manager.io/v1alpha2 prod: cert-manag
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
+  namespace: sock-shop
 spec:
   acme:
     # The ACME server URL
@@ -15,4 +16,4 @@ spec:
       - http01:
           ingress:
             class: nginx
-        selector: {}
+        # selector: {}

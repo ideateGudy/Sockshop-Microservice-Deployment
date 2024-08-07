@@ -23,4 +23,4 @@ spec:
   tls:
     - hosts:
         - sock.ideategudy.com
-      secretName: letsencrypt-prod
+      secretName: letsencrypt-prod-9525r-c6jk9
