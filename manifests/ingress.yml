@@ -5,8 +5,8 @@ metadata:
   name: sockshop-app-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
-    kubernetes.io/ingress.class: "nginx"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-nginx
 spec:
   ingressClassName: nginx
   rules:
@@ -22,5 +22,20 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - sock.ideategudy.com
-      secretName: letsencrypt-prod-9525r-c6jk9
+        - sock.ideategudy.me
+      secretName: letsencrypt-nginx
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ingress-nginx-rolebinding
+  namespace: sock-shop
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ingress-nginx
+subjects:
+  - kind: ServiceAccount
+    name: ingress-nginx
+    namespace: ingress-nginx
