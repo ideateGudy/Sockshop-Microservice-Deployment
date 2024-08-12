@@ -6,7 +6,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-nginx
 spec:
   ingressClassName: nginx
   rules:
@@ -20,10 +20,11 @@ spec:
                 name: front-end
                 port:
                   number: 80
-  tls:
-    - hosts:
-        - sock.ideategudy.me
-      secretName: letsencrypt-nginx
+
+  # tls:
+  #   - hosts:
+  #       - sock.ideategudy.me
+  #     secretName: letsencrypt-nginx
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
