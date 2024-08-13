@@ -1,0 +1,18 @@
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: staging-cluster
+spec:
+  acme:
+    # Staging Environment: must be used for testing before using prod env
+    # Letsencrypt has a strict rate limit.
+    email: azonubigoodnews@gmail.com
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: staging-issuer-secret
+    solvers:
+      - selector: {}
+        http01:
+          ingress:
+            class: nginx
