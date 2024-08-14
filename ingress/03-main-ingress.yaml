@@ -5,7 +5,7 @@ metadata:
   name: sockshop-app-ingress
   annotations:
     # nginx.ingress.kubernetes.io/rewrite-target: /
-    cert-manager.io/cluster-issuer: staging-cluster
+    cert-manager.io/cluster-issuer: production-cluster
 spec:
   ingressClassName: nginx
   rules:
@@ -29,8 +29,8 @@ spec:
                 name: grafana
                 # name: prometheus-grafana
                 port:
-                  number: 3000
-                  # number: 80
+                  # number: 3000
+                  number: 80
     - host: prometheus.ideategudy.me
       http:
         paths:
@@ -60,4 +60,4 @@ spec:
         - grafana.ideategudy.me
         - prometheus.ideategudy.me
         - alert.ideategudy.me
-      secretName: staging-issuer-secret
+      secretName: prod-issuer-secret

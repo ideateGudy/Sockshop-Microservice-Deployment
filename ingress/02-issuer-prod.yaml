@@ -8,7 +8,7 @@ spec:
     server: https://acme-v02.api.letsencrypt.org/directory # test: https://acme-staging-v02.api.letsencrypt.org/directory prod: https://acme-v02.api.letsencrypt.org/directory
     email: azonubigoodnews@gmail.com
     privateKeySecretRef:
-      name: prod-issuer-sec
+      name: prod-issuer-secret
     # Enable the HTTP-01 challenge provider
     solvers:
       - http01:

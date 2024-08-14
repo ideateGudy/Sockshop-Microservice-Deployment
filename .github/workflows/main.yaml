@@ -1,4 +1,4 @@
-name: CI/CD Workflow
+name: CI/CD
 
 on:
   push:
@@ -13,10 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # - name: Install Azure CLI
+      #   run: |
+      #     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
       - name: Set up Azure CLI
-        uses: azure/CLI@v1
+        uses: azure/setup-azure-cli
         with:
-          azcliversion: latest
+          azure-cliversion: latest
 
       - name: Login to Azure
         uses: azure/login@v1
@@ -42,39 +46,40 @@ jobs:
 
       - name: Deploy Terraform
         run: |
-          terraform -chdir=terraform/ init -backend-config="storage_account_name=sockstorage" -backend-config="container_name=terraform-state" -backend-config="key=terraform.tfstate" -backend-config="resource_group_name=sock-rg"
-          terraform -chdir=terraform/ apply --auto-approve
+          terraform -chdir=infrastructure/ init -backend-config="storage_account_name=sockstorage" -backend-config="container_name=terraform-state" -backend-config="key=terraform.tfstate" -backend-config="resource_group_name=sock-rg"
+          terraform -chdir=infrastructure/ apply --auto-approve
 
       - name: Update kubeconfig
         run: |
-          az aks get-credentials --resource-group sock-rg --name sock-shop-aks-cluster
-
+          az aks get-credentials --resource-group sock-shop-RG --name sock-shop-aks-cluster-test-env
+      # az aks get-credentials --resource-group sock-rg --name sock-shop-aks-cluster
       - name: Deploy application
-        run: kubectl apply -f deployment.yml
+        run: kubectl apply -f ./sockshop-microservices/.
 
       - name: Deploy Let's Encrypt
         run: |
           helm repo add jetstack https://charts.jetstack.io --force-update
           helm repo update jetstack
           helm upgrade --install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.15.2 --set crds.enabled=true
-          kubectl apply -f cert.yml
+          kubectl apply -f ./ingress/01-cert-manager.crds.yaml
 
       - name: Deploy Prometheus and Grafana
         run: |
-          kubectl apply -f ./manifest-monitoring/
+          cd ./manifests/monitoring/
+          bash deploy-monitoring.sh
 
       - name: Deploy Alertmanager
         run: |
-          kubectl apply -f ./manifest-alert/
+          cd ./manifests/alert-manager/
+          bash deploy-alertmanager.sh
 
-      - name: Deploy Nginx Ingress Controller
+      - name: Deploy Nginx Ingress Controller, letsencrypt certificate and ingress
         run: |
-          helm repo add nginx https://kubernetes.github.io/ingress-nginx
-          helm repo update nginx
-          helm upgrade --install nginx nginx/ingress-nginx --namespace sock-shop --wait
+          cd ./ingress
+          bash deploy-ingress.sh
 
-      - name: Delay
-        run: sleep 120s
+      # - name: Delay
+      #   run: sleep 120s
 
-      - name: Deploy Ingress Resources
-        run: kubectl apply -f ingress.yml
+      # - name: Deploy Ingress Resources
+      #   run: kubectl apply -f ingress.yml
