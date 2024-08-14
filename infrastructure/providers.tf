@@ -7,8 +7,16 @@ terraform {
     }
   }
 
+  backend "azurerm" {
+    resource_group_name   = "terraform-sock-rg"
+    storage_account_name  = "terraform-storage-acc"
+    container_name        = "tfstate"
+    key                   = "terraform.tfstate"
+  }
+
   required_version = ">= 0.14"
 }
+
 
 
 provider "azurerm" {

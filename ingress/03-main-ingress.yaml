@@ -29,8 +29,7 @@ spec:
                 # name: grafana
                 name: prometheus-grafana
                 port:
-                  number: 3000
-                  # number: 80
+                  number: 80
     - host: prometheus.ideategudy.me
       http:
         paths:
@@ -49,7 +48,7 @@ spec:
             path: /
             backend:
               service:
-                name: prometheus-alertmanager
+                name: prometheus-kube-prometheus-alertmanager
                 # name: alertmanager
                 # name: prometheus-kube-prometheus-alertmanager
                 port:

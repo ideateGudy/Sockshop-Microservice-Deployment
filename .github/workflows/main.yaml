@@ -36,19 +36,19 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
-      # - name: Create Azure Storage Account for Terraform State
-      #   run: |
-      #     az storage account create --name "sockstorage" --resource-group "sock-rg" --location ${{ vars.REGION }} --sku Standard_LRS
+      - name: Create Azure Storage Account for Terraform State
+        run: |
+          az storage account create --name "terraform-storage-acc" --resource-group "terraform-sock-rg" --location ${{ vars.REGION }} --sku Standard_LRS
 
-      # - name: Create Azure Blob Container for Terraform State
-      #   run: |
-      #     az storage container create --name "terraform-state" --account-name "sockstorage"
+      - name: Create Azure Blob Container for Terraform State
+        run: |
+          az storage container create --name "tfstate" --account-name "terraform-storage-acc"
 
       - name: Deploy Terraform
         run: |
           terraform -chdir=infrastructure/ init
           terraform -chdir=infrastructure/ apply --auto-approve
-      # terraform -chdir=infrastructure/ init -backend-config="storage_account_name=sockstorage" -backend-config="container_name=terraform-state" -backend-config="key=terraform.tfstate" -backend-config="resource_group_name=sock-rg"
+      # terraform -chdir=infrastructure/ init -backend-config="storage_account_name=terraform-storage-acc" -backend-config="container_name=tfstate" -backend-config="key=terraform.tfstate" -backend-config="resource_group_name=terraform-sock-rg"
       - name: Update kubeconfig
         run: |
           az aks get-credentials --resource-group sock-shop-RG --name sock-shop-aks-cluster-test-env
