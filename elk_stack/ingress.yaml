@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana
+  namespace: sock-shop
+  annotations:
+    cert-manager.io/cluster-issuer: production-cluster
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kibana.ideategudy.me
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: kibana
+                port:
+                  number: 5601
+  tls:
+    - hosts:
+        - kibana.ideategudy.me
+      secretName: prod-issuer-secret

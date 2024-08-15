@@ -4,7 +4,7 @@ metadata:
   namespace: sock-shop
   name: sockshop-app-ingress
   annotations:
-    # nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rewrite-target: /
     cert-manager.io/cluster-issuer: production-cluster
 spec:
   ingressClassName: nginx
@@ -48,9 +48,8 @@ spec:
             path: /
             backend:
               service:
-                name: prometheus-kube-prometheus-alertmanager
                 # name: alertmanager
-                # name: prometheus-kube-prometheus-alertmanager
+                name: prometheus-kube-prometheus-alertmanager
                 port:
                   number: 9093
 

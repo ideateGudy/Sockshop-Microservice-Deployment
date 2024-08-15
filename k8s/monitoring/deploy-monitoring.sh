@@ -22,7 +22,6 @@ yaml_files=(
     "20-grafana-configmap.yaml"
     "21-grafana-dep.yaml"
     "22-grafana-svc.yaml"
-    "23-grafana-import-dash-batch.yaml"
     "24-prometheus-node-exporter-sa.yaml"
     "25-prometheus-node-exporter-daemonset.yaml"
     "26-prometheus-node-exporter-svc.yaml"
@@ -33,19 +32,19 @@ for yaml_file in "${yaml_files[@]}"; do
     kubectl apply -f "$SCRIPT_DIR/$yaml_file"
 done
 
-
+echo "pwd: $(pwd) monitoring"
 echo "Sleeping for 2 minutes to allow Grafana to start..."
 sleep 2m
 
 # Port forward Grafana service in the background
-kubectl port-forward svc/grafana 3000:80 -n sock-shop &
-kubectl port-forward svc/prometheus 9090:9090 -n sock-shop &
+# kubectl port-forward svc/grafana 3000:80 -n sock-shop &
+# kubectl port-forward svc/prometheus 9090:9090 -n sock-shop &
 
 # Wait for a few seconds to ensure port forwarding has started
 sleep 5
 
 # Apply Grafana import dashboards and Prometheus configurations
 kubectl apply -f "$SCRIPT_DIR/23-grafana-import-dash-batch.yaml"
-kubectl apply -f "$SCRIPT_DIR/24-prometheus-node-exporter-sa.yaml"
-kubectl apply -f "$SCRIPT_DIR/25-prometheus-node-exporter-daemonset.yaml"
-kubectl apply -f "$SCRIPT_DIR/26-prometheus-node-exporter-svc.yaml"
+# kubectl apply -f "$SCRIPT_DIR/24-prometheus-node-exporter-sa.yaml"
+# kubectl apply -f "$SCRIPT_DIR/25-prometheus-node-exporter-daemonset.yaml"
+# kubectl apply -f "$SCRIPT_DIR/26-prometheus-node-exporter-svc.yaml"

@@ -6,7 +6,7 @@ spec:
   acme:
     # The ACME server URL
     server: https://acme-v02.api.letsencrypt.org/directory # test: https://acme-staging-v02.api.letsencrypt.org/directory prod: https://acme-v02.api.letsencrypt.org/directory
-    email: azonubigoodnews@gmail.com
+    email: azonubi.goodnews@gmail.com
     privateKeySecretRef:
       name: prod-issuer-secret
     # Enable the HTTP-01 challenge provider

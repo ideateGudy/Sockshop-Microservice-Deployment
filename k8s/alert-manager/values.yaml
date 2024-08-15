@@ -1,0 +1,9 @@
+alertmanager:
+  alertmanagerSpec:
+    configMap: alertmanager-config
+    env:
+      - name: SLACK_WEBHOOK_URL
+        valueFrom:
+          secretKeyRef:
+            name: slack-webhook-url
+            key: slack-url
