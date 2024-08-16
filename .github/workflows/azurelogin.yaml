@@ -1,27 +1,83 @@
-# File: .github/workflows/workflow.yml
+name: CI/CD Pipeline
+
 on:
-    push:
-        branches: [ main ]
-    workflow_dispatch:
-    
-
-# File: .github/workflows/workflow.yml
-
-name: Run Azure Login With a Service Principal Secret
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-
-  build-and-deploy:
+  test:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # - name: Install Kubeval
+      #   un: |
+      #     curl -sLO https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+      #     tar xf kubeval-linux-amd64.tar.gz
+      #     sudo mv kubeval /usr/local/bin/
 
-    - name: Azure CLI script
-      uses: azure/cli@v2
-      with:
-        azcliversion: latest
-        inlineScript: |
-          az account show
+      # - name: Test Kubernetes Manifests
+      #   run: kubeval .
+
+  infrastructure-update:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # - name: Login to Azure
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      
+
+  deploy:
+    needs: infrastructure-update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # - name: Login to Azure
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Install Kubectl
+        run: |
+          az aks install-cli
+
+      - name: Set up Azure authentication
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # - name: Install Terraform
+      #   run: |
+      #     sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+      #     curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+      #     sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+      #     sudo apt-get update && sudo apt-get install terraform
+
+      # - name: Terraform Init and Plan
+      #   run: |
+      #     terraform init
+      #     terraform plan -out=tfplan
+
+      # - name: Terraform Apply
+      #   if: success()
+      #   run: terraform apply -input=false tfplan
+
+     
