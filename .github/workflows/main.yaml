@@ -48,7 +48,7 @@ jobs:
       
         -   name: Terraform Plan
             id: tf_plan
-            working-directory: ./terraform
+            working-directory: ./infrastructure 
             run: |
               terraform plan -detailed-exitcode -out=plan.tfplan \
               -var="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
