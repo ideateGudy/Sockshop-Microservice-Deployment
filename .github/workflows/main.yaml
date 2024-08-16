@@ -40,7 +40,11 @@ jobs:
         -   name: Set up Terraform
             uses: hashicorp/setup-terraform@v2
             with:
-              terraform_version: '1.9.3'            
+              terraform_version: '1.9.3' 
+
+        -   name: Register Provider 
+            working-directory: ./infrastructure
+            run: az provider register --namespace Microsoft.TimeSeriesInsights
       
         -   name: Initialize Terraform
             working-directory: ./infrastructure
