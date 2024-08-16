@@ -50,11 +50,7 @@ jobs:
             id: tf_plan
             working-directory: ./infrastructure 
             run: |
-              terraform plan -detailed-exitcode -out=plan.tfplan \
-              -var="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
-              -var="client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" \
-              -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-              -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}"
+              terraform plan -detailed-exitcode -out=plan.tfplan
               echo "exit_code=$?" >> $GITHUB_ENV
 
         -   name: Check Plan Status
@@ -75,11 +71,8 @@ jobs:
         -   name: Terraform Apply
             if: steps.check_plan_status.outcome == 'success' && env.exit_code == '2'
             working-directory: ./terraform
-            run: terraform apply --auto-approve plan.tfplan \
-              -var="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
-              -var="client_secret=${{ secrets.AZURE_CLIENT_SECRET }}" \
-              -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-              -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}"
+            run: terraform apply --auto-approve plan.tfplan
+         
 
     Deploy:
         # deploys the application to Kubernetes cluster, this could include changes to parts of the configuration files.
