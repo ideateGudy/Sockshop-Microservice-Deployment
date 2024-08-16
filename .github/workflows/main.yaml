@@ -9,6 +9,11 @@ on:
             - 'kubernetes/monitoring/**'  # Listens for changes in the 'kubernetes/sock-shop-monitoring' folder
     workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+    
+
 jobs:
     Test:
         # validates the format and correcttness of the Kubernetes manifests
