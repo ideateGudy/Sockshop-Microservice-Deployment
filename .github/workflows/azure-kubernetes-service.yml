@@ -50,34 +50,14 @@ jobs:
               terraform plan
               # echo "exit_code=$?" >> $GITHUB_ENV
 
-        # -   name: Check Plan Status
-        #     id: check_plan_status
-        #     run: |
-        #       if [ "$exit_code" -eq 0 ]; then
-        #         echo "No changes detected. Skipping apply."
-        #         exit 0
-        #       elif [ "$exit_code" -eq 2 ]; then
-        #         echo "Changes detected. Proceeding with apply."
-        #       else
-        #         echo "Error during plan. Exiting."
-        #         exit 1
-        #       fi
-        #     env:
-        #       exit_code: ${{ env.exit_code }}
-
         - name: Terraform Apply
             # if: steps.check_plan_status.outcome == 'success' && env.exit_code == '2'
           working-directory: ./infrastructure
           run: terraform apply --auto-approve
-              
 
-    # Deploy:
-    #     # deploys the application to Kubernetes cluster, this could include changes to parts of the configuration files.
-    #     # changes like number of pods, memory, cpu, ingress, monitoring and alert configurations etc. 
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #     -   name: Checkout
-    #         uses: actions/checkout@v3
+        - name: Get AKS credentials
+          run: |
+            az aks get-credentials --resource-group sock-shop-RG --name sock-shop-aks-cluster-test-env --overwrite-existing
 
     #     -   name: Setup Kubectl
     #         uses: azure/aks-set-context@v1
@@ -86,11 +66,11 @@ jobs:
     #             cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
     #             resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
 
-    #     -   name: Install Helm
-    #         run: |
-    #             curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-    #             chmod 700 get_helm.sh
-    #             ./get_helm.sh
+        - name: Install Helm
+          run: |
+            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+            chmod 700 get_helm.sh
+            ./get_helm.sh
 
     #     -   name: Check if cert-manager is installed
     #         id: check-cert-manager
@@ -103,18 +83,54 @@ jobs:
     #              echo "install=true" >> $GITHUB_ENV
     #             fi
 
-    #     -   name: Install CertManager
-    #         if: env.install == 'true'
-    #         run: |
-    #             kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.2/cert-manager.crds.yaml
-    #             helm repo add jetstack https://charts.jetstack.io
-    #             helm repo update
-    #             helm install cert-manager --namespace cert-manager --version v1.15.2 jetstack/cert-manager
+        - name: Install CertManager
+            # if: env.install == 'true'
+          run: |
+            kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.2/cert-manager.crds.yaml
+            helm repo add jetstack https://charts.jetstack.io
+            helm repo update
+            helm install cert-manager --namespace cert-manager --version v1.15.2 jetstack/cert-manager
         
-        # -   name: Deploy to Kubernetes
-        #     run: |
-        #       ls k8s/*.yaml | xargs -n 1 kubectl apply -f
-        #       ls kubernetes/sock-shop-monitoring/*.yaml | xargs -n 1 kubectl apply -f
+        - name: Deploy to sock-shop app
+          run: |
+            cd ./k8s
+            kubectl apply -f sockshop-deployment.yaml
+            sleep 2m
+
+        - name: Deploy to ingress-nginx controller
+          run: |
+           cd ./k8s
+           kubectl apply -f 00-ingress-nginx.yaml
+           kubectl get svc -n ingress-nginx
+           echo "sleeping for 2 minutes"
+           sleep 2m
+           
+        - name: Deploy to Prometheus, Grafana and Alert-Manager
+          run: |
+           cd ./k8s
+           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+           helm repo update prometheus-community
+           helm install prometheus prometheus-community/kube-prometheus-stack --namespace sock-shop --create-namespace
+           echo "sleeping for 2 minutes"
+           sleep 2m
+
+           
+        - name: Issue certificate with Letsencrypt
+          run: |
+           cd ./k8s
+           kubectl apply -f 02-issuer-prod.yaml
+           echo "sleeping for 3 minutes"
+           sleep 3m
+           kubectl apply -f 03-main-ingress.yaml
+
+           
+
+        
+
+
+            
+            # ls k8s/*.yaml | xargs -n 1 kubectl apply -
+            # ls kubernetes/sock-shop-monitoring/*.yaml | xargs -n 1 kubectl apply -f
 
     # Validate:
     #     # runs tests to verify the deployment
