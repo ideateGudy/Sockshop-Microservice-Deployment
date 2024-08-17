@@ -123,13 +123,22 @@ To enable HTTPS with Let's Encrypt:
 - Create a ClusterIssuer for Let's Encrypt.
 - Define ingress rules for your services.
 
-> I issued a staging certificate first and you can find it in the ./k8s/isser-stag.yaml
+```
+kubectl apply -f issuer-stag.yaml
+```
+
+> I issued a staging certificate first and you can find it in the ./k8s/issuer-stag.yaml
 > ![terraform](k8s/.img/staging.jpg)
 
 ---
 
+```
+kubectl apply -f 02-issuer-prod.yaml
+```
+
 > This is the production certificate which is secured
-> ![terraform](k8s/.img/production.jpg) > ![terraform](.img/live_preview_secured.jpg)
+> ![terraform](k8s/.img/production.jpg)
+> ![terraform](.img/live_preview_secured.jpg)
 > Configuration files can be found in the ./k8s directory.
 
 ### 3. _Deploying Prometheus and Grafana_
