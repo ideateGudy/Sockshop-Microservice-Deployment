@@ -29,6 +29,7 @@ jobs:
         - name: Az Login
           run: |
             az login --tenant ${{ secrets.AZURE_TENANT_ID }}
+            az provider register --namespace Microsoft.TimeSeriesInsights
 
 
     
