@@ -32,6 +32,8 @@
 
 This project demonstrates a scalable and modular approach to deploying a microservice-based application using various Kubernetes tools, GitHub Actions for CI/CD, and infrastructure-as-code (IaC) practices.
 
+![Architecture](.img/architecture.jpg)
+
 ## Project Overview
 
 This repository automates the deployment of a microservice application (Sock Shop) on an Azure Kubernetes Service (AKS) cluster. The deployment includes monitoring and SSL/TLS security using industry-standard tools like Prometheus, Grafana, and Let's Encrypt.
@@ -137,8 +139,7 @@ kubectl apply -f 02-issuer-prod.yaml
 ```
 
 > This is the production certificate which is secured
-> ![terraform](k8s/.img/production.jpg)
-> ![terraform](.img/live_preview_secured.jpg)
+> ![terraform](k8s/.img/production.jpg) > ![terraform](.img/live_preview_secured.jpg)
 > Configuration files can be found in the ./k8s directory.
 
 ### 3. _Deploying Prometheus and Grafana_
