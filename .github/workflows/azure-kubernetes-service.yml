@@ -12,7 +12,7 @@ on:
     workflow_dispatch:
 
 jobs:
-    Test:
+    Deploy:
         # validates the format and correcttness of the Kubernetes manifests
         runs-on: ubuntu-latest
         steps:
