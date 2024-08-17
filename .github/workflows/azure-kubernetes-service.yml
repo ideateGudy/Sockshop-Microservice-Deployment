@@ -6,14 +6,12 @@ on:
         branches:
             - main
         paths:
-            - 'infrastructure/**'  # Listens for changes in the 'terraform' folder
-            - 'k8s/*.yaml'  # Listens for changes in the 'kubernetes' folder
-            # - 'kubernetes/sock-shop-monitoring/**'  # Listens for changes in the 'kubernetes/sock-shop-monitoring' folder
+            - 'infrastructure/**' 
+            - 'k8s/*.yaml'  
     workflow_dispatch:
 
 jobs:
     Deploy:
-        # validates the format and correcttness of the Kubernetes manifests
         runs-on: ubuntu-latest
         steps:
         -   name: Checkout
@@ -26,9 +24,14 @@ jobs:
         -   name: Validate Kubernetes manifests
             run: kubeval --ignore-missing-schemas k8s/*.yaml
 
-        - name: Az Login
+        - name: Az Cli Login
           run: |
             az login --tenant ${{ secrets.AZURE_TENANT_ID }}
+
+        # - name: Az Cli Login
+        #   uses: azure/login@v2
+        #   with:
+        #     creds: ${{ secrets.AZURE_CREDENTIALS }}
 
         - name: Register Provider
           run: |
@@ -44,14 +47,11 @@ jobs:
            run: terraform init
       
         -  name: Terraform Plan
-           # id: tf_plan
            working-directory: ./infrastructure 
            run: |
               terraform plan
-              # echo "exit_code=$?" >> $GITHUB_ENV
 
         - name: Terraform Apply
-            # if: steps.check_plan_status.outcome == 'success' && env.exit_code == '2'
           working-directory: ./infrastructure
           run: terraform apply --auto-approve
 
@@ -59,12 +59,6 @@ jobs:
           run: |
             az aks get-credentials --resource-group sock-shop-RG --name sock-shop-aks-cluster-test-env --overwrite-existing
 
-    #     -   name: Setup Kubectl
-    #         uses: azure/aks-set-context@v1
-    #         with:
-    #             creds: ${{ secrets.AZURE_CREDENTIALS }}
-    #             cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
-    #             resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
 
         - name: Install Helm
           run: |
@@ -72,19 +66,7 @@ jobs:
             chmod 700 get_helm.sh
             ./get_helm.sh
 
-    #     -   name: Check if cert-manager is installed
-    #         id: check-cert-manager
-    #         run: |
-    #             if kubectl get pods --namespace cert-manager | grep cert-manager; then
-    #              echo "cert-manager is already installed"
-    #              echo "install=false" >> $GITHUB_ENV
-    #             else
-    #              echo "cert-manager is not installed"
-    #              echo "install=true" >> $GITHUB_ENV
-    #             fi
-
         - name: Install CertManager
-            # if: env.install == 'true'
           run: |
             kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.2/cert-manager.crds.yaml
             helm repo add jetstack https://charts.jetstack.io
@@ -92,22 +74,22 @@ jobs:
             helm install cert-manager --namespace cert-manager --create-namespace --version v1.15.2 jetstack/cert-manager
         
         - name: Deploy to sock-shop app
+          working-directory: ./k8s
           run: |
-            cd ./k8s
             kubectl apply -f sockshop-deployment.yaml
             sleep 2m
 
         - name: Deploy to ingress-nginx controller
+          working-directory: ./k8s
           run: |
-           cd ./k8s
            kubectl apply -f 00-ingress-nginx.yaml
            kubectl get svc -n ingress-nginx
            echo "sleeping for 2 minutes"
            sleep 2m
            
         - name: Deploy to Prometheus, Grafana and Alert-Manager
+          working-directory: ./k8s
           run: |
-           cd ./k8s
            helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
            helm repo update prometheus-community
            helm install prometheus prometheus-community/kube-prometheus-stack --namespace sock-shop --create-namespace
@@ -116,45 +98,11 @@ jobs:
 
            
         - name: Issue certificate with Letsencrypt
+          working-directory: ./k8s
           run: |
-           cd ./k8s
            kubectl apply -f 02-issuer-prod.yaml
            echo "sleeping for 3 minutes"
            sleep 3m
            kubectl apply -f 03-main-ingress.yaml
 
-           
-
         
-
-
-            
-            # ls k8s/*.yaml | xargs -n 1 kubectl apply -
-            # ls kubernetes/sock-shop-monitoring/*.yaml | xargs -n 1 kubectl apply -f
-
-    # Validate:
-    #     # runs tests to verify the deployment
-    #     runs-on: ubuntu-latest
-    #     needs: [Deploy]
-    #     steps:
-    #     -   name: Set up kubectl
-    #         uses: azure/setup-kubectl@v3
-    #         with:
-    #             version: 'v1.24.0'
-
-    #     -   name: Setup Kubectl
-    #         uses: azure/aks-set-context@v1
-    #         with:
-    #             creds: ${{ secrets.AZURE_CREDENTIALS }}
-    #             cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
-    #             resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
-
-    #     -   name: Check if all application pods are running
-    #         run: |
-    #           kubectl get pods --namespace your-namespace -o jsonpath='{.items[*].status.phase}' | grep -v Running && exit 1 || echo "All pods are running"
-              
-
-    #     -   name: Validate Ingress routes
-    #         run: |
-    #           curl -I https://capstone.utibeokon.me/
-    #           curl -I https://prometheus.utibeokon.me/
