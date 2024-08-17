@@ -168,3 +168,11 @@ To deploy the entire stack locally by navigating to the ./k8s directory and use 
 ```bash
 bash deploy-app.sh
 ```
+
+---
+
+---
+
+> ##### There is still room for improvements.
+>
+> ##### i'll continue to work on this repo .....
