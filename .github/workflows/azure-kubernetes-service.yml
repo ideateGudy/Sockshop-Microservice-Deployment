@@ -27,7 +27,7 @@ jobs:
             run: kubeval --ignore-missing-schemas k8s/*.yaml
 
         -   name: Az Login
-            run: az login --tenant {{ secrets.AZURE_TENANT_ID }}
+            run: az login --tenant ${{ secrets.AZURE_TENANT_ID }}
 
     
     Infrastructure:
