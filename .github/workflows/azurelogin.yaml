@@ -1,4 +1,4 @@
-name: Deploy to Azure
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,21 +7,115 @@ on:
   workflow_dispatch:
 
 jobs:
+  # test:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+
+  # - name: Install Kubeval
+  #   un: |
+  #     curl -sLO https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+  #     tar xf kubeval-linux-amd64.tar.gz
+  #     sudo mv kubeval /usr/local/bin/
+
+  # - name: Test Kubernetes Manifests
+  #   run: kubeval .
+
+  # infrastructure-update:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+
+  # - name: Login to Azure
+  #   uses: azure/login@v1
+  #   with:
+  #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
   deploy:
+    needs: infrastructure-update
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Azure CLI
-        uses: azure/setup-azure-cli@v1
+      # - name: Login to Azure
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Login to Azure using OIDC
+      - name: Install Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Install Kubectl
+        run: |
+          az aks install-cli
+
+      - name: Set up Azure authentication
         uses: azure/login@v1
         with:
-          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # - name: Install Terraform
+      #   run: |
+      #     sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+      #     curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+      #     sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+      #     sudo apt-get update && sudo apt-get install terraform
 
-      - name: Deploy Azure resources
-        run: |
-          az group create --name myResourceGroup --location eastus
-          az deployment group create --resource-group myResourceGroup --template-file azuredeploy.json
+      # - name: Terraform Init and Plan
+      #   run: |
+      #     terraform init
+      #     terraform plan -out=tfplan
+
+      # - name: Terraform Apply
+      #   if: success()
+      #   run: terraform apply -input=false tfplan
+
+      # - name: Check for Terraform Files
+      #   run: |
+      #     if [ -z "$(ls -A ./.terraform/*.tf 2>/dev/null)" ]; then
+      #       echo "No Terraform files found, skipping."
+      #       exit 0
+      #     fi
+
+      # - name: Initialize Terraform
+      #   run: terraform init
+      #   working-directory: ./.terraform
+
+      # - name: Plan Terraform
+      #   run: terraform plan -out=tfplan
+      #   working-directory: ./.terraform
+
+      # - name: Configure Kubectl
+      #   run: |
+      #     az aks get-credentials --resource-group rg-dear-jawfish --name cluster-exact-osprey --admin --overwrite-existing
+
+      # - name: Install Cert-Manager
+      #   run: |
+      #     helm repo add jetstack https://charts.jetstack.io
+      #     helm repo update
+      #     helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace
+
+      # - name: Deploy Ingress with Existing Cert-Manager Certificate
+      #   run: kubectl apply -f ./my-ingress.yaml
+
+      # - name: Install Prometheus
+      #   run: |
+      #     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+      #     helm install prometheus prometheus-community/kube-prometheus-stack
+
+      # - name: Install Grafana
+      #   run: |
+      #     helm repo add grafana https://grafana.github.io/helm-charts
+      #     helm install grafana grafana/grafana
+
+      # - name: Install Alertmanager
+      #   run: |
+      #     helm install alertmanager prometheus-community/alertmanager
