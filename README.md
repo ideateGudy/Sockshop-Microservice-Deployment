@@ -150,9 +150,16 @@ You can access the application over HTTPS with certificates issued by Let’s En
 This project uses a GitHub Actions pipeline for fully automated deployment:
 
 - _Setup AKS with Terraform._
-- _Deploy applications and monitoring tools._
-- _Setup Ingress-Nginx Controller and Cert-Manager for HTTPS._
-- _Deploy Prometheus and Grafana for monitoring._
+- _Install Helm_
+- _Install CertManager_
+- _Deploy sockshop application._
+- _Setup ingress-nginx Controller_
+- _Deploy to Prometheus, Grafana for monitoring and Alert-Manager_
+- _Issue certificate with Letsencrypt and Cert-Manager for HTTPS._
+
+![automation](.img/namecheap.jpg)
+![automation](.img/pipeline.jpg)
+![automation](.img/deployed-with-github-action.jpg)
 
 ## Running the Deployment Locally
 
