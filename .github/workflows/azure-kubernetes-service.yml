@@ -26,13 +26,16 @@ jobs:
         -   name: Validate Kubernetes manifests
             run: kubeval --ignore-missing-schemas k8s/*.yaml
 
-        -   name: Az Login
-            run: az login --tenant ${{ secrets.AZURE_TENANT_ID }}
+        - name: Az Login
+          run: |
+            az login --tenant ${{ secrets.AZURE_TENANT_ID }}
+
 
     
     Infrastructure:
         # deploys or updates the infrastructure using Terraform, ignores if theee was no change to infrastructure configuration
         runs-on: ubuntu-latest
+        needs: [Test]
         env:
              ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
              ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
