@@ -52,7 +52,7 @@ This repository automates the deployment of a microservice application (Sock Sho
 
 ## Project Structure
 
-- _[terraform/](./infrastructure/):_ Terraform configurations for setting up the AKS cluster.
+- _[infrastructure/](./infrastructure/):_ Terraform configurations for setting up the AKS cluster.
 - _[sockshop-microservice/](./sockshop-microservice/):_ Kubernetes manifests for deploying the Sock Shop application and monitoring tools.
 - _[k8s/](./kubernetes/ingress/):_ Ingress and Let's Encrypt configuration files for securing application access.
 
