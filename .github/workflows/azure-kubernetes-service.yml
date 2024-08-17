@@ -24,7 +24,7 @@ jobs:
                 sudo mv kubeval /usr/local/bin/kubeval
 
         -   name: Validate Kubernetes manifests
-            run: kubeval --ignore-missing-schemas kubernetes/*.yaml
+            run: kubeval --ignore-missing-schemas k8s/*.yaml
 
         -   name: Az Login
             run: az login --tenant {{ secrets.AZURE_TENANT_ID }}
