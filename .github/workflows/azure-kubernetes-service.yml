@@ -1,108 +1,99 @@
-
 name: Deploy to Azure Kubernetes Service
 
 on:
-    push:
-        branches:
-            - main
-        paths:
-            - 'infrastructure/**' 
-            - 'k8s/*.yaml'  
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "infrastructure/**"
+      - "k8s/*.yaml"
+  workflow_dispatch:
 
 jobs:
-    Deploy:
-        runs-on: ubuntu-latest
-        steps:
-        -   name: Checkout
-            uses: actions/checkout@v3
-        -   name: Install Kubeval
-            run: |
-                curl -sSL https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz | tar -xz
-                sudo mv kubeval /usr/local/bin/kubeval
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Kubeval
+        run: |
+          curl -sSL https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz | tar -xz
+          sudo mv kubeval /usr/local/bin/kubeval
 
-        -   name: Validate Kubernetes manifests
-            run: kubeval --ignore-missing-schemas k8s/*.yaml
+      - name: Validate Kubernetes manifests
+        run: kubeval --ignore-missing-schemas k8s/*.yaml
 
-        - name: Az Cli Login
-          run: |
-            az login --tenant ${{ secrets.AZURE_TENANT_ID }}
+      - name: Az Cli Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-        # - name: Az Cli Login
-        #   uses: azure/login@v2
-        #   with:
-        #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Register Provider
+        run: |
+          az provider register --namespace Microsoft.TimeSeriesInsights
 
-        - name: Register Provider
-          run: |
-            az provider register --namespace Microsoft.TimeSeriesInsights
-      
-        - name: Set up Terraform
-          uses: hashicorp/setup-terraform@v2
-          with:
-            terraform_version: '1.9.3'  
-      
-        -  name: Initialize Terraform
-           working-directory: ./infrastructure 
-           run: terraform init
-      
-        -  name: Terraform Plan
-           working-directory: ./infrastructure 
-           run: |
-              terraform plan
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.9.3"
 
-        - name: Terraform Apply
-          working-directory: ./infrastructure
-          run: terraform apply --auto-approve
+      - name: Initialize Terraform
+        working-directory: ./infrastructure
+        run: terraform init
 
-        - name: Get AKS credentials
-          run: |
-            az aks get-credentials --resource-group sock-shop-RG --name sock-shop-aks-cluster-test-env --overwrite-existing
+      - name: Terraform Plan
+        working-directory: ./infrastructure
+        run: |
+          terraform plan
 
+      - name: Terraform Apply
+        working-directory: ./infrastructure
+        run: terraform apply --auto-approve
 
-        - name: Install Helm
-          run: |
-            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-            chmod 700 get_helm.sh
-            ./get_helm.sh
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials --resource-group sock-shop-RG --name sock-shop-aks-cluster-test-env --overwrite-existing
 
-        - name: Install CertManager
-          run: |
-            kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.2/cert-manager.crds.yaml
-            helm repo add jetstack https://charts.jetstack.io
-            helm repo update
-            helm install cert-manager --namespace cert-manager --create-namespace --version v1.15.2 jetstack/cert-manager
-        
-        - name: Deploy to sock-shop app
-          working-directory: ./k8s
-          run: |
-            kubectl apply -f sockshop-deployment.yaml
-            sleep 2m
+      - name: Install Helm
+        run: |
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
 
-        - name: Deploy to ingress-nginx controller
-          working-directory: ./k8s
-          run: |
-           kubectl apply -f 00-ingress-nginx.yaml
-           kubectl get svc -n ingress-nginx
-           echo "sleeping for 2 minutes"
-           sleep 2m
-           
-        - name: Deploy to Prometheus, Grafana and Alert-Manager
-          working-directory: ./k8s
-          run: |
-           helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-           helm repo update prometheus-community
-           helm install prometheus prometheus-community/kube-prometheus-stack --namespace sock-shop --create-namespace
-           echo "sleeping for 2 minutes"
-           sleep 2m
+      - name: Install CertManager
+        run: |
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.2/cert-manager.crds.yaml
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update
+          helm install cert-manager --namespace cert-manager --create-namespace --version v1.15.2 jetstack/cert-manager
 
-           
-        - name: Issue certificate with Letsencrypt
-          working-directory: ./k8s
-          run: |
-           kubectl apply -f 02-issuer-prod.yaml
-           echo "sleeping for 3 minutes"
-           sleep 3m
-           kubectl apply -f 03-main-ingress.yaml
+      - name: Deploy to sock-shop app
+        working-directory: ./k8s
+        run: |
+          kubectl apply -f sockshop-deployment.yaml
+          sleep 2m
 
-        
+      - name: Deploy ingress-nginx controller
+        working-directory: ./k8s
+        run: |
+          kubectl apply -f 00-ingress-nginx.yaml
+          kubectl get svc -n ingress-nginx
+          echo "sleeping for 2 minutes"
+          sleep 2m
+
+      - name: Deploy to Prometheus, Grafana and Alert-Manager
+        working-directory: ./k8s
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update prometheus-community
+          helm install prometheus prometheus-community/kube-prometheus-stack --namespace sock-shop --create-namespace
+          echo "sleeping for 2 minutes"
+          sleep 2m
+
+      - name: Issue certificate with Letsencrypt
+        working-directory: ./k8s
+        run: |
+          kubectl apply -f 02-issuer-prod.yaml
+          echo "sleeping for 3 minutes"
+          sleep 3m
+          kubectl apply -f 03-main-ingress.yaml
