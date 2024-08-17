@@ -29,7 +29,6 @@ jobs:
         - name: Az Login
           run: |
             az login --tenant ${{ secrets.AZURE_TENANT_ID }}
-            az provider register --namespace Microsoft.TimeSeriesInsights
 
 
     
@@ -49,7 +48,11 @@ jobs:
         -   name: Set up Terraform
             uses: hashicorp/setup-terraform@v2
             with:
-              terraform_version: '1.9.3'            
+              terraform_version: '1.9.3'  
+
+        - name: Register Provider
+          run: |
+            az provider register --namespace Microsoft.TimeSeriesInsights
       
         -   name: Initialize Terraform
             working-directory: ./infrastructure 
