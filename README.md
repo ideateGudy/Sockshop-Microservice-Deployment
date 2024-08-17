@@ -78,6 +78,8 @@ terraform apply tfplan
 ```
 
 ![terraform](.img/terraform-output.jpg)
+![terraform](.img/resource_group.jpg)
+![terraform](.img/aks-cluster.jpg)
 
 Then to deploy the application, navigate to the ./sockshop-microservices/ directory and apply the YAML files.
 
