@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: Deploy to Azure
 
 on:
   push:
@@ -7,74 +7,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # - name: Install Kubeval
-      #   un: |
-      #     curl -sLO https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
-      #     tar xf kubeval-linux-amd64.tar.gz
-      #     sudo mv kubeval /usr/local/bin/
-
-      # - name: Test Kubernetes Manifests
-      #   run: kubeval .
-
-  infrastructure-update:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # - name: Login to Azure
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      
-
   deploy:
-    needs: infrastructure-update
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # - name: Login to Azure
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Set up Azure CLI
+        uses: azure/setup-azure-cli@v1
 
-      - name: Install Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-
-      
-      - name: Install Kubectl
-        run: |
-          az aks install-cli
-
-      - name: Set up Azure authentication
+      - name: Login to Azure using OIDC
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      # - name: Install Terraform
-      #   run: |
-      #     sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
-      #     curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
-      #     sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-      #     sudo apt-get update && sudo apt-get install terraform
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # - name: Terraform Init and Plan
-      #   run: |
-      #     terraform init
-      #     terraform plan -out=tfplan
-
-      # - name: Terraform Apply
-      #   if: success()
-      #   run: terraform apply -input=false tfplan
-
-     
+      - name: Deploy Azure resources
+        run: |
+          az group create --name myResourceGroup --location eastus
+          az deployment group create --resource-group myResourceGroup --template-file azuredeploy.json
